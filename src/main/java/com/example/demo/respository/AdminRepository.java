@@ -36,7 +36,12 @@ public class AdminRepository {
 
     public void updateAdmin(AdminRequest admin) {
         String sql = "UPDATE admin SET nombreAdmin = ?, passwordAdmin = ?, Correo = ? WHERE idAdmin = ?";
-        jdbcTemplate.update(sql, admin.getNombreAdmin(), admin.getPasswordAdmin(), admin.getCorreo());
+        jdbcTemplate.update(sql,
+                admin.getNombreAdmin(),       // param 1
+                admin.getPasswordAdmin(),     // param 2
+                admin.getCorreo(),            // param 3
+                admin.getIdAdmin()            // param 4
+        );
     }
 
     public void deleteAdmin(int id) {
