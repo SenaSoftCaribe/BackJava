@@ -7,51 +7,84 @@ import com.example.demo.model.PagoReserva;
 import com.example.demo.service.PagoReservaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/pagos-reserva")
+@RequestMapping("pagosreserva")
 public class PagoReservaController {
-    @Autowired
-    private PagoReservaService service;
+    private final PagoReservaService service;
 
-    private PagoReservaResponse toResp(PagoReserva p) {
-        PagoReservaResponse r = new PagoReservaResponse();
-        r.setIdPagosReserva(p.getIdPagosReserva());
-        r.setTipoPago(p.getTipoPago());
-        r.setFecha(p.getFecha());
-        r.setReservaId(p.getReservaId());
-        r.setPagadorId(p.getPagadorId());
-        r.setMonto(p.getMonto());
-        return r;
+    public PagoReservaController(PagoReservaService service) {
+        this.service = service;
     }
 
-    private PagoReserva toEntity(PagoReservaRequest req) {
-        PagoReserva p = new PagoReserva();
-        p.setTipoPago(req.getTipoPago());
-        p.setReservaId(req.getReservaId());
-        p.setPagadorId(req.getPagadorId());
-        p.setMonto(req.getMonto());
-        return p;
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAll() {
+        List<PagoReservaResponse> data = service.getAll();
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", 200);
+        response.put("message", "Pagos de reserva obtenidos");
+        response.put("data", data);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping public List<PagoReservaResponse> all() {
-        return service.listAll().stream().map(this::toResp).collect(Collectors.toList());
+    @GetMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> getById(@PathVariable int id) {
+        try {
+            PagoReservaResponse pago = service.getById(id);
+            Map<String, Object> response = new HashMap<>();
+            response.put("timestamp", LocalDateTime.now());
+            response.put("status", 200);
+            response.put("message", "Pago reserva encontrado");
+            response.put("data", pago);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("timestamp", LocalDateTime.now());
+            response.put("status", 404);
+            response.put("message", "No se encontró el pago de reserva con ID: " + id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
     }
 
-    @GetMapping("/{id}") public ResponseEntity<PagoReservaResponse> get(@PathVariable Integer id) {
-        try { return ResponseEntity.ok(toResp(service.get(id))); } catch(Exception e) { return ResponseEntity.notFound().build(); }
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> create(@RequestBody PagoReservaRequest request) {
+        service.create(request);
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", 201);
+        response.put("message", "Pago de reserva creado correctamente");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping public ResponseEntity<PagoReservaResponse> create(@Valid @RequestBody PagoReservaRequest req) {
-        PagoReserva created = service.create(toEntity(req));
-        return ResponseEntity.created(URI.create("/api/pagos-reserva/" + created.getIdPagosReserva())).body(toResp(created));
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> update(@PathVariable int id, @RequestBody PagoReservaRequest request) {
+        request.setIdPagosReserva(id);
+        service.update(request);
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", 200);
+        response.put("message", "Pago de reserva actualizado correctamente");
+        return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}") public ResponseEntity<Void> delete(@PathVariable Integer id) { service.delete(id); return ResponseEntity.noContent().build(); }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> delete(@PathVariable int id) {
+        service.delete(id);
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", 200);
+        response.put("message", "Pago de reserva eliminado correctamente");
+        return ResponseEntity.ok(response);
+    }
 }

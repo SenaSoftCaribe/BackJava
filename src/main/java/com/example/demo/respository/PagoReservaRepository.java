@@ -1,5 +1,7 @@
-package com.example.demo.repository;
+package com.example.demo.respository;
 
+import com.example.demo.dto.PagoReservaRequest;
+import com.example.demo.dto.PagoReservaResponse;
 import com.example.demo.model.PagoReserva;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -7,6 +9,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -14,40 +17,52 @@ import java.util.List;
 
 @Repository
 public class PagoReservaRepository {
-    private final JdbcTemplate jdbc;
-    private final SimpleJdbcInsert insert;
 
-    public PagoReservaRepository(JdbcTemplate jdbc, DataSource ds) {
-        this.jdbc = jdbc;
-        this.insert = new SimpleJdbcInsert(ds).withTableName("PagosReserva").usingGeneratedKeyColumns("id_pagos_reserva");
+    private final JdbcTemplate jdbcTemplate;
+
+    public PagoReservaRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
     }
 
-    private final RowMapper<PagoReserva> mapper = (rs, rowNum) -> {
-        PagoReserva p = new PagoReserva();
-        p.setIdPagosReserva(rs.getInt("id_pagos_reserva"));
-        p.setTipoPago(rs.getString("tipo_pago"));
-        Timestamp t = rs.getTimestamp("fecha"); if (t!=null) p.setFecha(t.toLocalDateTime());
-        p.setReservaId(rs.getInt("reserva_id"));
-        p.setPagadorId(rs.getInt("pagador_id"));
-        p.setMonto(rs.getBigDecimal("monto"));
-        return p;
-    };
+    private final RowMapper<PagoReservaResponse> rowMapper = (ResultSet rs, int rowNum) -> new PagoReservaResponse(
+            rs.getInt("idPagosReserva"),
+            rs.getString("TipoPago"),
+            rs.getString("Fecha"),
+            rs.getInt("Reserva_idReserva"),
+            rs.getInt("Pagador_idPagador")
+    );
 
-    public List<PagoReserva> findAll() { return jdbc.query("SELECT * FROM PagosReserva", mapper); }
-    public PagoReserva findById(int id) { return jdbc.queryForObject("SELECT * FROM PagosReserva WHERE id_pagos_reserva = ?", new Object[]{id}, mapper); }
+    public List<PagoReservaResponse> findAll() {
+        return jdbcTemplate.query("SELECT * FROM pagosreserva", rowMapper);
+    }
 
-    public PagoReserva save(PagoReserva p) {
-        Map<String,Object> vals = Map.of(
-                "tipo_pago", p.getTipoPago(),
-                "fecha", Timestamp.valueOf(p.getFecha() == null ? LocalDateTime.now() : p.getFecha()),
-                "reserva_id", p.getReservaId(),
-                "pagador_id", p.getPagadorId(),
-                "monto", p.getMonto()
+    public PagoReservaResponse findById(int id) {
+        return jdbcTemplate.queryForObject("SELECT * FROM pagosreserva WHERE idPagosReserva = ?", rowMapper, id);
+    }
+
+    public int save(PagoReservaRequest request) {
+        String sql = "INSERT INTO pagosreserva (idPagosReserva, TipoPago, Fecha, Reserva_idReserva, Pagador_idPagador) VALUES (?, ?, ?, ?, ?)";
+        return jdbcTemplate.update(sql,
+                request.getIdPagosReserva(),
+                request.getTipoPago(),
+                request.getFecha(),
+                request.getReservaId(),
+                request.getPagadorId()
         );
-        Number k = insert.executeAndReturnKey(vals);
-        p.setIdPagosReserva(k.intValue());
-        return p;
     }
 
-    public int delete(int id) { return jdbc.update("DELETE FROM PagosReserva WHERE id_pagos_reserva = ?", id); }
+    public int update(PagoReservaRequest request) {
+        String sql = "UPDATE pagosreserva SET TipoPago = ?, Fecha = ?, Reserva_idReserva = ?, Pagador_idPagador = ? WHERE idPagosReserva = ?";
+        return jdbcTemplate.update(sql,
+                request.getTipoPago(),
+                request.getFecha(),
+                request.getReservaId(),
+                request.getPagadorId(),
+                request.getIdPagosReserva()
+        );
+    }
+
+    public int delete(int id) {
+        return jdbcTemplate.update("DELETE FROM pagosreserva WHERE idPagosReserva = ?", id);
+    }
 }

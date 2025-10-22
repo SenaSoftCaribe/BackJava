@@ -1,6 +1,11 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.PagoReservaRequest;
+import com.example.demo.dto.PagoReservaResponse;
 import com.example.demo.model.PagoReserva;
+
+import com.example.demo.respository.PagoReservaRepository;
+import com.example.demo.respository.PagosRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -8,18 +13,30 @@ import java.util.List;
 
 @Service
 public class PagoReservaService {
+    ;private final PagoReservaRepository reservaRepositorio;
 
-    private final com.example.demo.repository.PagoReservaRepository repo;
-    public PagoReservaService(com.example.demo.repository.PagoReservaRepository repo) { this.repo = repo; }
+    public PagoReservaService(PagoReservaRepository reservaRepositorio) {
+        this.reservaRepositorio = reservaRepositorio;
+    }
 
 
+    public List<PagoReservaResponse> getAll() {
+        return reservaRepositorio.findAll();
+    }
 
-    public List<PagoReserva> listAll() { return repo.findAll(); }
-    public PagoReserva get(Integer id) { return repo.findById(id); }
+    public PagoReservaResponse getById(int id) {
+        return reservaRepositorio.findById(id);
+    }
 
-    @Transactional
-    public PagoReserva create(PagoReserva p) { return repo.save(p); }
+    public void create(PagoReservaRequest request) {
+        reservaRepositorio.save(request);
+    }
 
-    @Transactional
-    public void delete(Integer id) { repo.delete(id); }
+    public void update(PagoReservaRequest request) {
+        reservaRepositorio.update(request);
+    }
+
+    public void delete(int id) {
+        reservaRepositorio.delete(id);
+    }
 }
