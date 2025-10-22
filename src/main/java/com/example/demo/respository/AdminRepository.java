@@ -1,55 +1,46 @@
-package com.example.demo.repository;
+package com.example.demo.respository;
 
+import com.example.demo.dto.AdminRequest;
+import com.example.demo.dto.AdminResponse;
 import com.example.demo.model.Admin;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.util.List;
 import java.util.Map;
 
 @Repository
 public class AdminRepository {
-    private final JdbcTemplate jdbc;
-    private final SimpleJdbcInsert insert;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
-    public AdminRepository(JdbcTemplate jdbc, DataSource ds) {
-        this.jdbc = jdbc;
-        this.insert = new SimpleJdbcInsert(ds)
-                .withTableName("Admin")
-                .usingGeneratedKeyColumns("id_admin");
+    public void createAdmin(AdminRequest admin) {
+        String sql = "INSERT INTO admin (idAdmin, nombreAdmin, passwordAdmin, Correo) VALUES (?, ?, ?, ?)";
+        jdbcTemplate.update(sql, admin.getIdAdmin(), admin.getNombreAdmin(), admin.getPasswordAdmin(), admin.getCorreo());
     }
 
-    private final RowMapper<Admin> mapper = (rs, rowNum) -> {
-        Admin a = new Admin();
-        a.setIdAdmin(rs.getInt("id_admin"));
-        a.setNombreAdmin(rs.getString("nombre_admin"));
-        a.setPasswordHash(rs.getString("password_hash"));
-        a.setCorreo(rs.getString("correo"));
-        return a;
-    };
-
-    public Admin findById(int id) {
-        return jdbc.queryForObject("SELECT * FROM Admin WHERE id_admin = ?", new Object[]{id}, mapper);
+    public AdminResponse getAdminById(int id) {
+        String sql = "SELECT idAdmin, nombreAdmin, Correo FROM admin WHERE idAdmin = ?";
+        return jdbcTemplate.queryForObject(sql, new BeanPropertyRowMapper<>(AdminResponse.class), id);
     }
 
-    public Admin findByCorreo(String correo) {
-        return jdbc.queryForObject("SELECT * FROM Admin WHERE correo = ?", new Object[]{correo}, mapper);
+    public List<AdminResponse> getAllAdmins() {
+        String sql = "SELECT idAdmin, nombreAdmin, Correo FROM admin";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(AdminResponse.class));
     }
 
-    public Admin save(Admin a) {
-        Map<String,Object> vals = Map.of(
-                "nombre_admin", a.getNombreAdmin(),
-                "password_hash", a.getPasswordHash(),
-                "correo", a.getCorreo()
-        );
-        Number key = insert.executeAndReturnKey(vals);
-        a.setIdAdmin(key.intValue());
-        return a;
+    public void updateAdmin(AdminRequest admin) {
+        String sql = "UPDATE admin SET nombreAdmin = ?, passwordAdmin = ?, Correo = ? WHERE idAdmin = ?";
+        jdbcTemplate.update(sql, admin.getNombreAdmin(), admin.getPasswordAdmin(), admin.getCorreo());
     }
 
-    public int delete(int id) {
-        return jdbc.update("DELETE FROM Admin WHERE id_admin = ?", id);
+    public void deleteAdmin(int id) {
+        String sql = "DELETE FROM admin WHERE idAdmin = ?";
+        jdbcTemplate.update(sql, id);
     }
 }

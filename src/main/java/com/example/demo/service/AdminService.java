@@ -1,30 +1,39 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.AdminRequest;
+import com.example.demo.dto.AdminResponse;
 import com.example.demo.model.Admin;
-import com.example.demo.repository.AdminRepository;
+
+import com.example.demo.respository.AdminRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class AdminService {
-    private final AdminRepository repo;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private AdminRepository adminDAO;
 
-    public AdminService(AdminRepository repo) { this.repo = repo; }
-
-    @Transactional
-    public Admin create(String nombre, String plaintextPassword, String correo) {
-        Admin a = new Admin();
-        a.setNombreAdmin(nombre);
-        a.setPasswordHash(passwordEncoder.encode(plaintextPassword));
-        a.setCorreo(correo);
-        return repo.save(a);
+    public void crearAdmin(AdminRequest admin) {
+        adminDAO.createAdmin(admin);
     }
 
-    public Admin findById(Integer id) { return repo.findById(id); }
-    public Admin findByCorreo(String correo) { return repo.findByCorreo(correo); }
+    public AdminResponse obtenerAdmin(int id) {
+        return adminDAO.getAdminById(id);
+    }
 
-    @Transactional
-    public void delete(Integer id) { repo.delete(id); }
+    public List<AdminResponse> obtenerTodosLosAdmins() {
+        return adminDAO.getAllAdmins();
+    }
+
+    public void actualizarAdmin(AdminRequest admin) {
+        adminDAO.updateAdmin(admin);
+    }
+
+    public void eliminarAdmin(int id) {
+        adminDAO.deleteAdmin(id);
+    }
 }
