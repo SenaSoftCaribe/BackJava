@@ -5,29 +5,71 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class VuelosResponse {
-
-    private Integer idVuelo;
+    private int idVuelos;
     private String origen;
     private String destino;
     private LocalDate fechaSalida;
-    private LocalTime horaSalida;
+    private LocalTime hora;
     private BigDecimal precio;
-    private Integer avionId;
+    private int avion;
 
-    // getters/setters
-    public Integer getIdVuelo() { return idVuelo; }
-    public void setIdVuelo(Integer idVuelo) { this.idVuelo = idVuelo; }
-    public String getOrigen() { return origen; }
-    public void setOrigen(String origen) { this.origen = origen; }
-    public String getDestino() { return destino; }
-    public void setDestino(String destino) { this.destino = destino; }
-    public LocalDate getFechaSalida() { return fechaSalida; }
-    public void setFechaSalida(LocalDate fechaSalida) { this.fechaSalida = fechaSalida; }
-    public LocalTime getHoraSalida() { return horaSalida; }
-    public void setHoraSalida(LocalTime horaSalida) { this.horaSalida = horaSalida; }
-    public BigDecimal getPrecio() { return precio; }
-    public void setPrecio(BigDecimal precio) { this.precio = precio; }
-    public Integer getAvionId() { return avionId; }
-    public void setAvionId(Integer avionId) { this.avionId = avionId; }
+    public VuelosResponse() {}
 
+    // Getters y Setters
+
+    public int getIdVuelos() {
+        return idVuelos;
+    }
+
+    public void setIdVuelos(int idVuelos) {
+        this.idVuelos = idVuelos;
+    }
+
+    public String getOrigen() {
+        return origen;
+    }
+
+    public void setOrigen(String origen) {
+        this.origen = origen;
+    }
+
+    public String getDestino() {
+        return destino;
+    }
+
+    public void setDestino(String destino) {
+        this.destino = destino;
+    }
+
+    public LocalDate getFechaSalida() {
+        return fechaSalida;
+    }
+
+    public void setFechaSalida(LocalDate fechaSalida) {
+        this.fechaSalida = fechaSalida;
+    }
+
+    public LocalTime getHora() {
+        return hora;
+    }
+
+    public void setHora(LocalTime hora) {
+        this.hora = hora;
+    }
+
+    public BigDecimal getPrecio() {
+        return precio;
+    }
+
+    public void setPrecio(BigDecimal precio) {
+        this.precio = precio;
+    }
+
+    public int getAvion() {
+        return avion;
+    }
+
+    public void setAvion(int avion) {
+        this.avion = avion;
+    }
 }

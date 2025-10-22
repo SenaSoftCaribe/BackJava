@@ -1,52 +1,87 @@
 package com.example.demo.respository;
 
+import com.example.demo.dto.VuelosRequest;
+import com.example.demo.dto.VuelosResponse;
 import com.example.demo.model.Vuelos;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
-import java.util.List;
-import java.util.Map;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalTime;
+import java.util.*;
 
 @Repository
 public class VuelosRepository {
 
-    private final JdbcTemplate jdbc;
-    private final SimpleJdbcInsert insert;
+    private final JdbcTemplate jdbcTemplate;
 
-    public VuelosRepository(JdbcTemplate jdbc, DataSource ds) {
-        this.jdbc = jdbc;
-        this.insert = new SimpleJdbcInsert(ds).withTableName("Vuelos").usingGeneratedKeyColumns("id_vuelo");
+    @Autowired
+    public VuelosRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
     }
 
-    private final RowMapper<Vuelos> mapper = (rs, rowNum) -> {
-        Vuelos v = new Vuelos();
-        v.setIdVuelo(rs.getInt("id_vuelo"));
-        v.setOrigen(rs.getString("origen"));
-        v.setDestino(rs.getString("destino"));
-        if (rs.getDate("fecha_salida") != null) v.setFechaSalida(rs.getDate("fecha_salida").toLocalDate());
-        if (rs.getTime("hora_salida") != null) v.setHoraSalida(rs.getTime("hora_salida").toLocalTime());
-        v.setPrecio(rs.getBigDecimal("precio"));
-        v.setAvionId(rs.getInt("avion_id"));
-        return v;
+    private RowMapper<VuelosResponse> rowMapper = (rs, rowNum) -> {
+        VuelosResponse vuelo = new VuelosResponse();
+        vuelo.setIdVuelos(rs.getInt("idVuelos"));
+        vuelo.setOrigen(rs.getString("Origen"));
+        vuelo.setDestino(rs.getString("Destino"));
+        vuelo.setFechaSalida(rs.getDate("fechaSalida").toLocalDate());
+        vuelo.setHora(LocalTime.parse(rs.getString("hora")));
+        vuelo.setPrecio(rs.getBigDecimal("precio"));
+
+        vuelo.setAvion(rs.getInt("Avion"));
+        return vuelo;
     };
-    public List<Vuelos> findAll() { return jdbc.query("SELECT * FROM Vuelos", mapper); }
-    public Vuelos findById(int id) { return jdbc.queryForObject("SELECT * FROM Vuelos WHERE id_vuelo = ?", new Object[]{id}, mapper); }
 
-    public Vuelos save(Vuelos v) {
-        Map<String,Object> vals = Map.of(
-                "origen", v.getOrigen(), "destino", v.getDestino(), "fecha_salida", v.getFechaSalida(),
-                "hora_salida", v.getHoraSalida(), "precio", v.getPrecio(), "avion_id", v.getAvionId());
-        Number k = insert.executeAndReturnKey(vals);
-        v.setIdVuelo(k.intValue()); return v;
+    public List<VuelosResponse> obtenerTodos() {
+        String sql = "SELECT * FROM vuelos";
+        return jdbcTemplate.query(sql, rowMapper);
     }
-    public int update(Vuelos v) {
-        return jdbc.update("UPDATE Vuelos SET origen=?, destino=?, fecha_salida=?, hora_salida=?, precio=?, avion_id=? WHERE id_vuelo=?",
-                v.getOrigen(), v.getDestino(), v.getFechaSalida(), v.getHoraSalida(), v.getPrecio(), v.getAvionId(), v.getIdVuelo());
+
+    public Optional<VuelosResponse> obtenerPorId(int id) {
+        String sql = "SELECT * FROM vuelos WHERE idVuelos = ?";
+        try {
+            VuelosResponse vuelo = jdbcTemplate.queryForObject(sql, rowMapper, id);
+            return Optional.ofNullable(vuelo);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
-    public int delete(int id) { return jdbc.update("DELETE FROM Vuelos WHERE id_vuelo = ?", id); }
 
+    public int crearVuelo(VuelosRequest req) {
+        String sql = "INSERT INTO vuelos (Origen, Destino, fechaSalida, hora, precio, Avion) VALUES (?, ?, ?, ?, ?, ?)";
+        return jdbcTemplate.update(sql,
+                req.getOrigen(),
+                req.getDestino(),
+                java.sql.Date.valueOf(req.getFechaSalida()),
+                req.getHora(),
+                req.getPrecio(),
+                req.getAvion()
+        );
+    }
 
+    public int actualizarVuelo(int id, VuelosRequest req) {
+        String sql = "UPDATE vuelos SET Origen = ?, Destino = ?, fechaSalida = ?, hora = ?, precio = ?, Avion = ? WHERE idVuelos = ?";
+        return jdbcTemplate.update(sql,
+                req.getOrigen(),
+                req.getDestino(),
+                java.sql.Date.valueOf(req.getFechaSalida()),
+                req.getHora(),
+                req.getPrecio(),
+                req.getAvion(),
+                id
+        );
+    }
+
+    public int eliminarVuelo(int id) {
+        String sql = "DELETE FROM vuelos WHERE idVuelos = ?";
+        return jdbcTemplate.update(sql, id);
+    }
 }
+

@@ -1,15 +1,21 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.VuelosRequest;
+import com.example.demo.dto.VuelosResponse;
 import com.example.demo.model.Vuelos;
 import com.example.demo.service.VuelosService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.example.demo.dto.VuelosResponse;
-import java.util.List;
 
-public class VuelosController{
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+@RestController
+@RequestMapping("/api/vuelos")
+public class VuelosController {
 
     private final VuelosService service;
 
@@ -20,37 +26,34 @@ public class VuelosController{
 
     @GetMapping
     public ResponseEntity<List<VuelosResponse>> obtenerTodos() {
-        List<Vuelos> lista = service.obtenerTodos();
-        List<VuelosResponse> respuesta = lista.stream()
-                .map(this::toResponse)
-                .toList();
-        return ResponseEntity.ok(respuesta);
+        return ResponseEntity.ok(service.obtenerTodos());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<VuelosResponse> obtenerPorId(@PathVariable int id) {
         try {
-            Vuelos vuelo = service.obtenerPorId(id);
-            return ResponseEntity.ok(toResponse(vuelo));
-        } catch (Exception e) {
+            return ResponseEntity.ok(service.obtenerPorId(id));
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     @PostMapping
-    public ResponseEntity<VuelosResponse> crearVuelo(@RequestBody VuelosRequest request) {
-        Vuelos creado = service.crearVuelo(toEntity(request));
-        return ResponseEntity.ok(toResponse(creado));
+    public ResponseEntity<Map<String, String>> crearVuelo(@RequestBody VuelosRequest request) {
+        service.crearVuelo(request);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("mensaje", "Vuelo creado exitosamente");
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<VuelosResponse> actualizarVuelo(@PathVariable int id, @RequestBody VuelosRequest request) {
-        Vuelos vuelo = toEntity(request);
-        vuelo.setIdVuelo(id);
+    public ResponseEntity<Void> actualizarVuelo(@PathVariable int id, @RequestBody VuelosRequest request) {
         try {
-            Vuelos actualizado = service.actualizarVuelo(vuelo);
-            return ResponseEntity.ok(toResponse(actualizado));
-        } catch (Exception e) {
+            service.actualizarVuelo(id, request);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
@@ -60,7 +63,7 @@ public class VuelosController{
         try {
             service.eliminarVuelo(id);
             return ResponseEntity.noContent().build();
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
