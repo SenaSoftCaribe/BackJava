@@ -48,4 +48,14 @@ public class AdminRepository {
         String sql = "DELETE FROM admin WHERE idAdmin = ?";
         jdbcTemplate.update(sql, id);
     }
+    /// //LOGIN ADMIN
+
+    public AdminResponse login(String correo, String password) {
+        String sql = "SELECT idAdmin, nombreAdmin, Correo FROM admin WHERE Correo = ? AND passwordAdmin = ?";
+        List<AdminResponse> result = jdbcTemplate.query(sql,
+                new BeanPropertyRowMapper<>(AdminResponse.class),
+                correo, password);
+
+        return result.isEmpty() ? null : result.get(0);
+    }
 }

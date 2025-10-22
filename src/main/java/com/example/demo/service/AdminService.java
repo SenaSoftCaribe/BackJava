@@ -36,4 +36,7 @@ public class AdminService {
     public void eliminarAdmin(int id) {
         adminDAO.deleteAdmin(id);
     }
+    public AdminResponse login(String correo, String password) {
+        return adminDAO.login(correo, password);
+    }
 }
