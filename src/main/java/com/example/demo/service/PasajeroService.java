@@ -30,7 +30,7 @@ public class PasajeroService {
         // Validar que haya asientos disponibles
         int asientosDisponibles = vuelosRepository.obtenerAsientosDisponibles(req.getIdVuelos());
         if (asientosDisponibles <= 0) {
-            return "❌ No hay asientos disponibles en este vuelo";
+            return "❌ No hay asientos disponibles en ese vuelo";
         }
 
         pasajeroRepository.crearPasajero(req);
