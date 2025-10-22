@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalTime;
@@ -28,14 +29,27 @@ public class VuelosRepository {
 
     private RowMapper<VuelosResponse> rowMapper = (rs, rowNum) -> {
         VuelosResponse vuelo = new VuelosResponse();
-        vuelo.setIdVuelos(rs.getInt("idVuelos"));
-        vuelo.setOrigen(rs.getString("Origen"));
-        vuelo.setDestino(rs.getString("Destino"));
-        vuelo.setFechaSalida(rs.getDate("fechaSalida").toLocalDate());
-        vuelo.setHora(LocalTime.parse(rs.getString("hora")));
-        vuelo.setPrecio(rs.getBigDecimal("precio"));
 
-        vuelo.setAvion(rs.getInt("Avion"));
+        // Columnas exactas de la tabla
+            // id de vuelo
+        vuelo.setOrigen(rs.getString("Origen"));       // mayúscula según tabla
+        vuelo.setDestino(rs.getString("Destino"));     // mayúscula según tabla
+        vuelo.setFechaSalida(rs.getDate("fechaSalida").toLocalDate());
+
+        // Convertir hora seguro
+        String horaStr = rs.getString("hora");
+        if (horaStr != null && !horaStr.isEmpty()) {
+            vuelo.setHora(LocalTime.parse(horaStr)); // formato HH:mm o HH:mm:ss
+        }
+
+        // Convertir precio seguro
+        String precioStr = rs.getString("precio");
+        if (precioStr != null && !precioStr.isEmpty()) {
+            vuelo.setPrecio(new BigDecimal(precioStr));
+        }
+
+        vuelo.setAvion(rs.getInt("Avion"));           // mayúscula según tabla
+
         return vuelo;
     };
 
@@ -83,5 +97,15 @@ public class VuelosRepository {
         String sql = "DELETE FROM vuelos WHERE idVuelos = ?";
         return jdbcTemplate.update(sql, id);
     }
+
+    public int obtenerAsientosDisponibles(int idVuelo) {
+        String sql = "SELECT Avion.Asientos - COUNT(Pasajero.idPasajero) AS asientosDisponibles " +
+                "FROM vuelos " +
+                "JOIN avion ON vuelos.Avion = avion.idAvion " +
+                "LEFT JOIN pasajero ON vuelos.idVuelos = pasajero.Vuelos_idVuelos " +
+                "WHERE vuelos.idVuelos = ? " +
+                "GROUP BY avion.Asientos";
+        return jdbcTemplate.queryForObject(sql, Integer.class, idVuelo);}
+
 }
 

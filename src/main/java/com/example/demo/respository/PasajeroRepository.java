@@ -38,11 +38,13 @@ public class PasajeroRepository {
         return p;
     };
 
+    // Obtener todos
     public List<PasajeroResponse> obtenerTodos() {
         String sql = "SELECT * FROM pasajero";
         return jdbcTemplate.query(sql, rowMapper);
     }
 
+    // Obtener por ID
     public Optional<PasajeroResponse> obtenerPorId(int id) {
         String sql = "SELECT * FROM pasajero WHERE idPasajero = ?";
         try {
@@ -53,10 +55,11 @@ public class PasajeroRepository {
         }
     }
 
+    // Crear pasajero
     public int crearPasajero(PasajeroRequest req) {
-        String sql = "INSERT INTO pasajero (nombre, primerApellido, segundoApellido, tipoDocumento, numeroDocumento, condicionInfante, celular, correo, Vuelos_idVuelos) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO pasajero (idPasajero, nombre, primerApellido, segundoApellido, tipoDocumento, numeroDocumento, condicionInfante, celular, correo, Vuelos_idVuelos) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         return jdbcTemplate.update(sql,
+
                 req.getNombre(),
                 req.getPrimerApellido(),
                 req.getSegundoApellido(),
@@ -65,10 +68,11 @@ public class PasajeroRepository {
                 req.getCondicionInfante(),
                 req.getCelular(),
                 req.getCorreo(),
-                req.getIdVuelo()
+                req.getIdVuelos()
         );
     }
 
+    // Actualizar pasajero
     public int actualizarPasajero(int id, PasajeroRequest req) {
         String sql = "UPDATE pasajero SET nombre = ?, primerApellido = ?, segundoApellido = ?, tipoDocumento = ?, numeroDocumento = ?, condicionInfante = ?, celular = ?, correo = ?, Vuelos_idVuelos = ? WHERE idPasajero = ?";
         return jdbcTemplate.update(sql,
@@ -80,11 +84,12 @@ public class PasajeroRepository {
                 req.getCondicionInfante(),
                 req.getCelular(),
                 req.getCorreo(),
-                req.getIdVuelo(),
+                req.getIdVuelos(),
                 id
         );
     }
 
+    // Eliminar pasajero
     public int eliminarPasajero(int id) {
         String sql = "DELETE FROM pasajero WHERE idPasajero = ?";
         return jdbcTemplate.update(sql, id);

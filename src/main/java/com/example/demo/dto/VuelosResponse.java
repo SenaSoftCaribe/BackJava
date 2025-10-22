@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class VuelosResponse {
-    private int idVuelos;
+
     private String origen;
     private String destino;
     private LocalDate fechaSalida;
@@ -17,13 +17,6 @@ public class VuelosResponse {
 
     // Getters y Setters
 
-    public int getIdVuelos() {
-        return idVuelos;
-    }
-
-    public void setIdVuelos(int idVuelos) {
-        this.idVuelos = idVuelos;
-    }
 
     public String getOrigen() {
         return origen;

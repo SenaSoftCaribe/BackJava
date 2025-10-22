@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.PasajeroRequest;
 import com.example.demo.dto.PasajeroResponse;
 import com.example.demo.respository.PasajeroRepository;
+import com.example.demo.service.PasajeroService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,50 +12,36 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/pasajeros")
+@RequestMapping("/pasajeros")
 public class PasajeroController {
 
-    private final PasajeroRepository repository;
 
     @Autowired
-    public PasajeroController(PasajeroRepository repository) {
-        this.repository = repository;
-    }
+    private PasajeroService pasajeroService;
 
     @GetMapping
-    public ResponseEntity<List<PasajeroResponse>> obtenerTodos() {
-        return ResponseEntity.ok(repository.obtenerTodos());
+    public List<PasajeroResponse> obtenerTodos() {
+        return pasajeroService.obtenerTodos();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PasajeroResponse> obtenerPorId(@PathVariable int id) {
-        Optional<PasajeroResponse> pasajero = repository.obtenerPorId(id);
-        return pasajero.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public Optional<PasajeroResponse> obtenerPorId(@PathVariable int id) {
+        return pasajeroService.obtenerPorId(id);
     }
 
     @PostMapping
-    public ResponseEntity<String> crearPasajero(@RequestBody PasajeroRequest request) {
-        repository.crearPasajero(request);
-        return ResponseEntity.status(201).body("Pasajero creado exitosamente");
+    public String crearPasajero(@RequestBody PasajeroRequest req) {
+        return pasajeroService.crearPasajero(req);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> actualizarPasajero(@PathVariable int id, @RequestBody PasajeroRequest request) {
-        int rows = repository.actualizarPasajero(id, request);
-        if (rows > 0) {
-            return ResponseEntity.ok("Pasajero actualizado");
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public int actualizarPasajero(@PathVariable int id, @RequestBody PasajeroRequest req) {
+        return pasajeroService.actualizarPasajero(id, req);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> eliminarPasajero(@PathVariable int id) {
-        int rows = repository.eliminarPasajero(id);
-        if (rows > 0) {
-            return ResponseEntity.ok("Pasajero eliminado");
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public int eliminarPasajero(@PathVariable int id) {
+        return pasajeroService.eliminarPasajero(id);
     }
+
 }
